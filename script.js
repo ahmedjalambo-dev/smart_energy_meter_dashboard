@@ -3,7 +3,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDrSS7eDfPxqKrNkx5s8mr4X6T5ZQRELWk",
   authDomain: "YOUR_AUTH_DOMAIN",
   databaseURL:
-    "https://smart-energy-meter-73045-default-rtdb.europe-west1.firebasedatabase.app",
+    "https://smart-energy-meter-73045-default-rtdb.europe-west1.firebasedatabase.app/",
   projectId: "smart-energy-meter-73045",
   storageBucket: "",
   messagingSenderId: "",
