@@ -158,6 +158,7 @@ function updateHourlyChart(selectedDateStr) {
 
   // Filter readings for the selected day
   const dailyReadings = allReadings.filter(reading => {
+    // Correctly parse the timestamp string from your Firebase data
     const readingDate = new Date(reading.timestamp);
     return (
       readingDate.getFullYear() === selectedDate.getFullYear() &&
@@ -172,8 +173,10 @@ function updateHourlyChart(selectedDateStr) {
     return;
   }
 
-  dailyReadings.sort((a, b) => a.timestamp - b.timestamp);
+  // Sort readings by timestamp to ensure correct calculation
+  dailyReadings.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
+  // Group readings by hour and get the max energy value for each hour
   const hourlyMaxEnergy = {};
   dailyReadings.forEach(reading => {
     const readingDate = new Date(reading.timestamp);
@@ -186,10 +189,11 @@ function updateHourlyChart(selectedDateStr) {
     }
   });
 
-  let previousHourEnergy = 0;
+  // Calculate hourly consumption
   for (let i = 0; i < 24; i++) {
     if (hourlyMaxEnergy[i] !== undefined) {
       let startOfHourEnergy = 0;
+      // Find the last known energy value from a previous hour
       for (let j = i - 1; j >= 0; j--) {
         if (hourlyMaxEnergy[j] !== undefined) {
           startOfHourEnergy = hourlyMaxEnergy[j];
@@ -216,6 +220,7 @@ function updateMonthlyChart(selectedYear) {
 
   // Filter readings for the selected year
   const yearlyReadings = allReadings.filter(reading => {
+    // Correctly parse the timestamp string from your Firebase data
     const readingDate = new Date(reading.timestamp);
     return readingDate.getFullYear() === selectedYear;
   });
@@ -228,6 +233,7 @@ function updateMonthlyChart(selectedYear) {
 
   const monthlyMaxBills = {};
   yearlyReadings.forEach(reading => {
+    // Correctly parse the timestamp string from your Firebase data
     const readingDate = new Date(reading.timestamp);
     const month = readingDate.getMonth();
     if (
@@ -252,10 +258,12 @@ dbRef.child("data").on(
   snapshot => {
     const data = snapshot.val();
     if (data) {
+      // Extract all the nested reading objects from the data node
       allReadings = Object.values(data);
-      const latestReading = allReadings.sort(
-        (a, b) => b.timestamp - a.timestamp
-      )[0];
+
+      // Sort by timestamp to get the latest reading
+      allReadings.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const latestReading = allReadings[0];
 
       if (latestReading) {
         liveCurrentEl.textContent = latestReading.current.toFixed(2);
@@ -264,6 +272,7 @@ dbRef.child("data").on(
         liveBillEl.textContent = latestReading.currentBill.toFixed(2);
       }
 
+      // Update charts with new data
       updateHourlyChart(datePicker.value);
       updateMonthlyChart(parseInt(yearPicker.value));
     }
@@ -276,11 +285,13 @@ dbRef.child("data").on(
 );
 
 // Real-time listener for the load control state
-dbRef.child("LoadControl/isEnabled").on(
+// Assuming there is a separate "LoadControl/shutdown" node based on sketch.ino
+dbRef.child("LoadControl/shutdown").on(
   "value",
   snapshot => {
-    const isEnabled = snapshot.val();
-    if (isEnabled === true) {
+    const isShutdown = snapshot.val();
+    if (isShutdown === false) {
+      // This means the load is CONNECTED
       loadControlBtn.textContent = "Disconnect Electricity";
       loadControlBtn.classList.remove(
         "bg-green-500",
@@ -295,7 +306,8 @@ dbRef.child("LoadControl/isEnabled").on(
       loadStatusEl.textContent = "Load is currently connected.";
       loadStatusEl.classList.remove("text-red-500");
       loadStatusEl.classList.add("text-green-500");
-    } else if (isEnabled === false) {
+    } else if (isShutdown === true) {
+      // This means the load is DISCONNECTED
       loadControlBtn.textContent = "Connect Electricity";
       loadControlBtn.classList.remove(
         "bg-red-500",
@@ -319,10 +331,11 @@ dbRef.child("LoadControl/isEnabled").on(
 
 // Event listener for the load control button
 loadControlBtn.addEventListener("click", () => {
-  const isEnabled = loadControlBtn.textContent === "Disconnect Electricity";
+  const isShutdown = loadControlBtn.textContent === "Connect Electricity";
+  // The sketch.ino code listens for a 'shutdown' command.
   dbRef
-    .child("LoadControl/isEnabled")
-    .set(!isEnabled)
+    .child("LoadControl/shutdown")
+    .set(isShutdown)
     .then(() => {
       // Update successful, the onValue listener will handle UI change
     })
