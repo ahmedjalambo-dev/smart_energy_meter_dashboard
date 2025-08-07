@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Energy Meter Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <h1>Smart Energy Meter Dashboard</h1>
+
+        <div class="live-data">
+            <h2>Live Readings</h2>
+            <div class="cards">
+                <div class="card">Current: <span id="current">--</span> A</div>
+                <div class="card">Power: <span id="power">--</span> W</div>
+                <div class="card">Energy: <span id="energy">--</span> kWh</div>
+                <div class="card">Bill: <span id="bill">--</span> ₪</div>
+            </div>
+            <button id="disconnect-btn">Disconnect Load</button>
+        </div>
+
+        <div class="charts">
+            <div class="chart-section">
+                <h2>Hourly Energy Consumption</h2>
+                <input type="date" id="datePicker" />
+                <canvas id="dailyChart"></canvas>
+            </div>
+
+            <div class="chart-section">
+                <h2>Monthly Bill Summary</h2>
+                <input type="number" id="yearPicker" min="2020" max="2030" value="2025" />
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
