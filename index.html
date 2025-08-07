@@ -2,45 +2,89 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Energy Meter Dashboard</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
-    <div class="dashboard-container">
-        <h1>Smart Energy Meter Dashboard</h1>
+<body class="bg-gray-100 text-gray-900">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">Loading data...</div>
 
-        <div class="live-data">
-            <h2>Live Readings</h2>
-            <div class="cards">
-                <div class="card">Current: <span id="current">--</span> A</div>
-                <div class="card">Power: <span id="power">--</span> W</div>
-                <div class="card">Energy: <span id="energy">--</span> kWh</div>
-                <div class="card">Bill: <span id="bill">--</span> ₪</div>
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Smart Energy Meter Dashboard</h1>
+        </header>
+
+        <!-- Live Data & Control Panel -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Live Readings</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Current Display -->
+                <div class="bg-purple-100 p-4 rounded-lg shadow-sm">
+                    <p class="text-sm font-medium text-purple-600">Current (A)</p>
+                    <p id="live-current" class="text-3xl font-bold text-purple-800">0.00</p>
+                </div>
+                <!-- Power Display -->
+                <div class="bg-blue-100 p-4 rounded-lg shadow-sm">
+                    <p class="text-sm font-medium text-blue-600">Power (W)</p>
+                    <p id="live-power" class="text-3xl font-bold text-blue-800">0.00</p>
+                </div>
+                <!-- Energy Display -->
+                <div class="bg-teal-100 p-4 rounded-lg shadow-sm">
+                    <p class="text-sm font-medium text-teal-600">Energy (kWh)</p>
+                    <p id="live-energy" class="text-3xl font-bold text-teal-800">0.00</p>
+                </div>
+                <!-- Bill Display -->
+                <div class="bg-rose-100 p-4 rounded-lg shadow-sm">
+                    <p class="text-sm font-medium text-rose-600">Current Bill (ILS)</p>
+                    <p id="live-bill" class="text-3xl font-bold text-rose-800">0.00</p>
+                </div>
             </div>
-            <button id="disconnect-btn">Disconnect Load</button>
+
+            <!-- Load Control Button -->
+            <div class="text-center">
+                <button id="load-control-btn"
+                    class="px-8 py-3 rounded-full text-white font-bold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-500/50">
+                    Disconnect Electricity
+                </button>
+                <p id="load-status" class="mt-2 text-sm font-medium"></p>
+            </div>
         </div>
 
-        <div class="charts">
-            <div class="chart-section">
-                <h2>Hourly Energy Consumption</h2>
-                <input type="date" id="datePicker" />
-                <canvas id="dailyChart"></canvas>
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Hourly Energy Chart -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold mb-2 sm:mb-0">Hourly Energy Consumption</h2>
+                    <input type="date" id="date-picker" class="rounded-lg p-2 border border-gray-300">
+                </div>
+                <canvas id="hourlyEnergyChart"></canvas>
             </div>
 
-            <div class="chart-section">
-                <h2>Monthly Bill Summary</h2>
-                <input type="number" id="yearPicker" min="2020" max="2030" value="2025" />
-                <canvas id="monthlyChart"></canvas>
+            <!-- Monthly Bills Chart -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold mb-2 sm:mb-0">Monthly Bills</h2>
+                    <input type="number" id="year-picker" min="2000" max="2100"
+                        class="rounded-lg p-2 border border-gray-300 w-32 text-center">
+                </div>
+                <canvas id="monthlyBillsChart"></canvas>
             </div>
         </div>
     </div>
 
+    <!-- Firebase and Chart.js CDNs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom Script -->
     <script src="script.js"></script>
 </body>
 
