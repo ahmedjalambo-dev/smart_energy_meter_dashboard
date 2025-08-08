@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,9 +11,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
+
 <body>
     <div class="container">
-         Header 
         <header class="header">
             <div class="header-content">
                 <div class="header-left">
@@ -46,7 +47,6 @@
         </header>
 
         <main class="main-content">
-             Live Data Section 
             <section class="section">
                 <div class="section-header">
                     <h2>Live Data</h2>
@@ -56,7 +56,8 @@
                     <div class="data-card">
                         <div class="card-header">
                             <h3>Current</h3>
-                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
                                 <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline>
                             </svg>
                         </div>
@@ -69,7 +70,8 @@
                     <div class="data-card">
                         <div class="card-header">
                             <h3>Power</h3>
-                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
                                 <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
                                 <line x1="3" y1="6" x2="21" y2="6"></line>
                                 <path d="M16 10a4 4 0 0 1-8 0"></path>
@@ -84,7 +86,8 @@
                     <div class="data-card">
                         <div class="card-header">
                             <h3>Energy</h3>
-                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
                         </div>
@@ -97,7 +100,8 @@
                     <div class="data-card">
                         <div class="card-header">
                             <h3>Current Bill</h3>
-                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
                                 <line x1="12" y1="1" x2="12" y2="23"></line>
                                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                             </svg>
@@ -109,8 +113,6 @@
                     </div>
                 </div>
             </section>
-
-             Controls Section 
             <section class="section">
                 <div class="section-header">
                     <h2>Controls</h2>
@@ -119,7 +121,8 @@
                 <div class="controls-container">
                     <div class="control-card">
                         <div class="control-header">
-                            <svg class="control-icon" id="connection-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="control-icon" id="connection-icon" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
                                 <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                             </svg>
                             <h3>Electricity Status</h3>
@@ -135,7 +138,6 @@
                 </div>
             </section>
 
-             Charts Section 
             <section class="section">
                 <div class="section-header">
                     <h2>Analytics</h2>
@@ -160,7 +162,8 @@
                             <h3>Monthly Bills</h3>
                             <div class="input-group">
                                 <label for="year-picker">Select Year</label>
-                                <input type="number" id="year-picker" min="2020" max="2030" step="1" value="2025" class="date-input">
+                                <input type="number" id="year-picker" min="2020" max="2030" step="1" value="2025"
+                                    class="date-input">
                             </div>
                         </div>
                         <div class="chart-container">
@@ -173,4 +176,5 @@
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>
