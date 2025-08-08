@@ -176,10 +176,3 @@ input[type="number"] {
     font-size: 1em;
     box-sizing: border-box;
 }
-
-/* Theme toggle icon alignment fix */
-.theme-toggle .theme-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}

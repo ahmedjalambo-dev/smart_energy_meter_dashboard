@@ -11,89 +11,57 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 
-<body data-theme="light">
+<body>
     <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div>
-                    <h1>Smart Energy Meter</h1>
-                    <p class="header-subtitle">Monitor & Control Your Power Usage</p>
-                </div>
-                <button id="theme-toggle" class="theme-toggle">
-                    <span class="theme-icon">🌙</span>
-                    <span>Dark Mode</span>
-                </button>
-            </div>
+        <header>
+            <h1>Smart Energy Meter</h1>
         </header>
-
-        <!-- Main Content -->
-        <main class="main">
-            <!-- Live Data -->
-            <section class="section">
-                <h2><span class="section-icon">⚡</span> Live Data</h2>
+        <main>
+            <section class="live-data">
+                <h2>Live Data</h2>
                 <div class="data-grid">
                     <div class="data-card">
-                        <div class="data-card-icon">🔌</div>
                         <h3>Current</h3>
                         <p id="current">0.0 A</p>
                     </div>
                     <div class="data-card">
-                        <div class="data-card-icon">💡</div>
                         <h3>Power</h3>
                         <p id="power">0.0 W</p>
                     </div>
                     <div class="data-card">
-                        <div class="data-card-icon">📈</div>
                         <h3>Energy</h3>
                         <p id="energy">0.000 kWh</p>
                     </div>
                     <div class="data-card">
-                        <div class="data-card-icon">💰</div>
                         <h3>Current Bill</h3>
                         <p id="bill">₪ 0.00</p>
                     </div>
                 </div>
             </section>
 
-            <!-- Controls -->
-            <section class="section">
-                <h2><span class="section-icon">🛠</span> Controls</h2>
+            <section class="controls">
+                <h2>Controls</h2>
                 <div class="control-panel">
-                    <div class="status-indicator">
-                        <span id="status-dot" class="status-dot connected"></span>
-                        <span id="load-status">Connected</span>
-                    </div>
-                    <button id="toggle-load" class="toggle-button">Disconnect Electricity</button>
+                    <p>Electricity Status: <span id="load-status">Connected</span></p>
+                    <button id="toggle-load">Disconnect Electricity</button>
                 </div>
             </section>
 
-            <!-- Charts -->
-            <section class="section">
-                <h2><span class="section-icon">📊</span> Charts</h2>
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <div class="chart-header">
-                            <span class="chart-title">Daily Energy Consumption (kWh)</span>
-                            <input type="date" id="date-picker" class="date-input">
-                        </div>
-                        <canvas id="daily-chart"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <div class="chart-header">
-                            <span class="chart-title">Monthly Bills (₪)</span>
-                            <input type="number" id="year-picker" min="2020" max="2030" step="1" value="2025"
-                                class="year-input">
-                        </div>
-                        <canvas id="monthly-chart"></canvas>
-                    </div>
+            <section class="charts">
+                <div class="chart-container">
+                    <h2>Daily Energy Consumption (kWh)</h2>
+                    <input type="date" id="date-picker">
+                    <canvas id="daily-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h2>Monthly Bills (₪)</h2>
+                    <input type="number" id="year-picker" min="2020" max="2030" step="1" value="2025">
+                    <canvas id="monthly-chart"></canvas>
                 </div>
             </section>
         </main>
     </div>
-
     <script src="script.js"></script>
 </body>
-
 
 </html>

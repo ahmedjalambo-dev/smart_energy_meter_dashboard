@@ -374,33 +374,3 @@ if (document.readyState === "loading") {
     updateMonthlyChart(yearPicker.value);
   }, 1000);
 }
-
-// Theme toggle
-const body = document.body;
-const themeToggle = document.getElementById("theme-toggle");
-
-// Load saved theme
-const savedTheme = localStorage.getItem("theme");
-if (savedTheme) {
-  body.setAttribute("data-theme", savedTheme);
-  updateThemeButton(savedTheme);
-}
-
-// Toggle theme on click
-themeToggle.addEventListener("click", () => {
-  const currentTheme = body.getAttribute("data-theme");
-  const newTheme = currentTheme === "dark" ? "light" : "dark";
-  body.setAttribute("data-theme", newTheme);
-  localStorage.setItem("theme", newTheme);
-  updateThemeButton(newTheme);
-});
-
-function updateThemeButton(theme) {
-  if (theme === "dark") {
-    themeToggle.querySelector(".theme-icon").textContent = "☀️";
-    themeToggle.querySelector("span:last-child").textContent = "Light Mode";
-  } else {
-    themeToggle.querySelector(".theme-icon").textContent = "🌙";
-    themeToggle.querySelector("span:last-child").textContent = "Dark Mode";
-  }
-}
