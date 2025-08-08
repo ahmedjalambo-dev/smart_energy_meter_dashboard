@@ -1,200 +1,144 @@
-/* Import a modern font and icons */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
-
-/* --- THEME VARIABLES ---
-  We define colors for the light theme in :root 
-  and override them for the dark theme.
-*/
-:root {
-    --bg-color: #f0f2f5;
-    --text-color: #212529;
-    --primary-color: #007bff;
-    --header-bg: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
-    --card-bg: #ffffff;
-    --card-border: #e0e0e0;
-    --card-hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    --input-bg: #ffffff;
-    --input-border: #ccc;
-    --success-color: #28a745;
-    --danger-color: #dc3545;
-    --toggle-bg: #FFF;
-    --toggle-fg: #007bff;
-}
-
-body.dark-theme {
-    --bg-color: #121212;
-    --text-color: #e0e0e0;
-    --primary-color: #3b82f6;
-    --header-bg: #1f2937;
-    --card-bg: #1f2937;
-    --card-border: #374151;
-    --card-hover-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
-    --input-bg: #374151;
-    --input-border: #4b5563;
-    --toggle-bg: #374151;
-    --toggle-fg: #3b82f6;
-}
-
 /* General Body Styles */
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
     margin: 0;
     padding: 20px;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    /* Align to top */
+    align-items: center;
     min-height: 100vh;
-    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Main Container */
 .container {
     width: 100%;
     max-width: 1200px;
-    background-color: transparent;
-    /* Container is now a wrapper */
+    background-color: #fff;
     border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
 /* Header */
 header {
-    background: var(--header-bg);
+    background-color: #007bff;
     color: white;
-    padding: 20px 30px;
-    display: flex;
-    /* Use flexbox for alignment */
-    justify-content: space-between;
-    align-items: center;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
 }
 
 header h1 {
     margin: 0;
-    font-size: 1.8em;
+    font-size: 2em;
 }
 
 /* Main Content Area */
 main {
-    padding: 0;
-    /* Remove padding */
-    margin-top: 30px;
+    padding: 20px;
 }
 
 /* Section Styling */
 section {
     margin-bottom: 30px;
-    /* Removed background and border from base section */
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
 }
 
 section h2 {
     margin-top: 0;
     font-size: 1.5em;
-    color: var(--text-color);
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
     padding-bottom: 10px;
     margin-bottom: 20px;
-    font-weight: 600;
 }
 
 /* Live Data Grid */
 .live-data .data-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
 }
 
 .data-card {
-    background-color: var(--card-bg);
-    padding: 25px;
-    border-radius: 12px;
-    border: 1px solid var(--card-border);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .data-card:hover {
     transform: translateY(-5px);
-    box-shadow: var(--card-hover-shadow);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .data-card h3 {
-    margin: 0 0 15px;
-    font-size: 1.1em;
-    color: var(--text-color);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-}
-
-.data-card h3 i {
+    margin: 0 0 10px;
     font-size: 1.2em;
-    margin-right: 10px;
-    color: var(--primary-color);
-    width: 25px;
-    text-align: center;
+    color: #495057;
 }
 
 .data-card p {
     margin: 0;
-    font-size: 2.2em;
-    font-weight: 700;
-    color: var(--primary-color);
+    font-size: 2em;
+    font-weight: bold;
+    color: #212529;
 }
 
-/* Controls & Charts Common Wrapper Style */
-.panel {
-    background-color: var(--card-bg);
-    padding: 25px;
-    border-radius: 12px;
-    border: 1px solid var(--card-border);
-}
-
+/* Controls Section */
 .controls .control-panel {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
-    font-size: 1.1em;
+    gap: 15px;
 }
 
 #load-status {
-    font-weight: 600;
-    padding: 8px 15px;
-    border-radius: 8px;
-    color: white;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
 }
 
 #load-status.connected {
-    background-color: var(--success-color);
+    background-color: #28a745;
+    color: white;
 }
 
 #load-status.disconnected {
-    background-color: var(--danger-color);
+    background-color: #dc3545;
+    color: white;
 }
 
 #toggle-load {
     padding: 12px 25px;
     font-size: 1em;
     border: none;
-    border-radius: 8px;
+    border-radius: 5px;
     cursor: pointer;
-    font-weight: 600;
+    background-color: #dc3545;
     color: white;
-    transition: background-color 0.3s, transform 0.2s;
-    background-color: var(--danger-color);
+    transition: background-color 0.3s;
 }
 
 #toggle-load:hover {
-    transform: scale(1.05);
+    background-color: #c82333;
 }
 
 #toggle-load.connect {
-    background-color: var(--success-color);
+    background-color: #28a745;
 }
+
+#toggle-load.connect:hover {
+    background-color: #218838;
+}
+
 
 /* Charts Section */
 .charts {
@@ -203,10 +147,17 @@ section h2 {
     gap: 30px;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 768px) {
     .charts {
         grid-template-columns: 1fr 1fr;
     }
+}
+
+.chart-container {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
 }
 
 .chart-container h2 {
@@ -218,62 +169,17 @@ section h2 {
 input[type="date"],
 input[type="number"] {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     margin-bottom: 20px;
-    border: 1px solid var(--input-border);
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    border-radius: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
     font-size: 1em;
     box-sizing: border-box;
 }
 
-/* --- THEME TOGGLE SWITCH --- */
-.theme-switch-wrapper {
+/* Theme toggle icon alignment fix */
+.theme-toggle .theme-icon {
     display: flex;
     align-items: center;
-}
-
-.theme-switch {
-    display: inline-block;
-    height: 34px;
-    position: relative;
-    width: 60px;
-}
-
-.theme-switch input {
-    display: none;
-}
-
-.slider {
-    background-color: var(--toggle-bg);
-    border: 1px solid var(--primary-color);
-    bottom: 0;
-    cursor: pointer;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-    transition: .4s;
-    border-radius: 34px;
-}
-
-.slider:before {
-    background-color: var(--toggle-fg);
-    bottom: 4px;
-    content: "";
-    height: 24px;
-    left: 4px;
-    position: absolute;
-    transition: .4s;
-    width: 24px;
-    border-radius: 50%;
-}
-
-input:checked+.slider {
-    background-color: var(--toggle-bg);
-}
-
-input:checked+.slider:before {
-    transform: translateX(26px);
+    justify-content: center;
 }
