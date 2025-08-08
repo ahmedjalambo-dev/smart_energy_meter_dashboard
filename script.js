@@ -374,3 +374,37 @@ if (document.readyState === "loading") {
     updateMonthlyChart(yearPicker.value);
   }, 1000);
 }
+// --- THEME SWITCHER LOGIC ---
+
+const themeToggle = document.getElementById("checkbox");
+const body = document.body;
+
+// Function to apply the saved theme
+const applyTheme = (theme) => {
+  if (theme === 'dark') {
+    body.classList.add('dark-theme');
+    themeToggle.checked = true;
+  } else {
+    body.classList.remove('dark-theme');
+    themeToggle.checked = false;
+  }
+};
+
+// Toggle theme and save preference to localStorage
+themeToggle.addEventListener('change', () => {
+  if (themeToggle.checked) {
+    body.classList.add('dark-theme');
+    localStorage.setItem('theme', 'dark');
+  } else {
+    body.classList.remove('dark-theme');
+    localStorage.setItem('theme', 'light');
+  }
+});
+
+// On page load, check for saved theme
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+
+    // ... your existing DOMContentLoaded code ...
+});

@@ -15,31 +15,37 @@
     <div class="container">
         <header>
             <h1>Smart Energy Meter</h1>
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider"></div>
+                </label>
+            </div>
         </header>
         <main>
             <section class="live-data">
                 <h2>Live Data</h2>
                 <div class="data-grid">
                     <div class="data-card">
-                        <h3>Current</h3>
+                        <h3><i class="fa-solid fa-bolt"></i>Current</h3>
                         <p id="current">0.0 A</p>
                     </div>
                     <div class="data-card">
-                        <h3>Power</h3>
+                        <h3><i class="fa-solid fa-lightbulb"></i>Power</h3>
                         <p id="power">0.0 W</p>
                     </div>
                     <div class="data-card">
-                        <h3>Energy</h3>
+                        <h3><i class="fa-solid fa-plug-circle-check"></i>Energy</h3>
                         <p id="energy">0.000 kWh</p>
                     </div>
                     <div class="data-card">
-                        <h3>Current Bill</h3>
+                        <h3><i class="fa-solid fa-file-invoice-dollar"></i>Current Bill</h3>
                         <p id="bill">₪ 0.00</p>
                     </div>
                 </div>
             </section>
 
-            <section class="controls">
+            <section class="controls panel">
                 <h2>Controls</h2>
                 <div class="control-panel">
                     <p>Electricity Status: <span id="load-status">Connected</span></p>
@@ -48,13 +54,13 @@
             </section>
 
             <section class="charts">
-                <div class="chart-container">
-                    <h2>Daily Energy Consumption (kWh)</h2>
+                <div class="chart-container panel">
+                    <h2>Daily Energy Consumption</h2>
                     <input type="date" id="date-picker">
                     <canvas id="daily-chart"></canvas>
                 </div>
-                <div class="chart-container">
-                    <h2>Monthly Bills (₪)</h2>
+                <div class="chart-container panel">
+                    <h2>Monthly Bills</h2>
                     <input type="number" id="year-picker" min="2020" max="2030" step="1" value="2025">
                     <canvas id="monthly-chart"></canvas>
                 </div>
