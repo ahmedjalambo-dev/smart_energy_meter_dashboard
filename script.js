@@ -1,369 +1,166 @@
-// This script handles all the dynamic functionality of the Smart Energy Meter Dashboard.
-
-// Set up the Firebase configuration from the user's sketch.ino file
+// Firebase Configuration from your sketch.ino
 const firebaseConfig = {
   apiKey: "AIzaSyDrSS7eDfPxqKrNkx5s8mr4X6T5ZQRELWk",
   databaseURL:
-    "https://smart-energy-meter-73045-default-rtdb.europe-west1.firebasedatabase.app/",
-  projectId: "smart-energy-meter-73045"
+    "https://smart-energy-meter-73045-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
 // Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const dbRef = db.ref("/");
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
-// Get DOM elements
-const liveCurrentEl = document.getElementById("live-current");
-const livePowerEl = document.getElementById("live-power");
-const liveEnergyEl = document.getElementById("live-energy");
-const liveBillEl = document.getElementById("live-bill");
-const loadControlBtn = document.getElementById("load-control-btn");
+// DOM Elements
+const currentEl = document.getElementById("current");
+const powerEl = document.getElementById("power");
+const energyEl = document.getElementById("energy");
+const billEl = document.getElementById("bill");
 const loadStatusEl = document.getElementById("load-status");
+const toggleLoadBtn = document.getElementById("toggle-load");
 const datePicker = document.getElementById("date-picker");
 const yearPicker = document.getElementById("year-picker");
-const loadingOverlay = document.getElementById("loading-overlay");
 
-// Chart instances
-let hourlyEnergyChart;
-let monthlyBillsChart;
+// --- LIVE DATA & CONTROLS ---
 
-// Global variable to store all historical data
-let allReadings = [];
+// Reference to the latest data entry
+const latestDataRef = database.ref("data").limitToLast(1);
 
-/**
- * Toggles the visibility of the loading overlay.
- * @param {boolean} isLoading - True to show the overlay, false to hide.
- */
-function toggleLoading(isLoading) {
-  if (isLoading) {
-    loadingOverlay.classList.remove("hidden");
+latestDataRef.on("child_added", snapshot => {
+  const data = snapshot.val();
+  currentEl.textContent = `${data.current.toFixed(1)} A`;
+  powerEl.textContent = `${data.power.toFixed(0)} W`;
+  energyEl.textContent = `${data.totalEnergy_kWh.toFixed(3)} kWh`;
+  billEl.textContent = `₪ ${data.currentBill.toFixed(2)}`;
+});
+
+// Reference to the load control
+const loadControlRef = database.ref("LoadControl/isEnabled");
+
+loadControlRef.on("value", snapshot => {
+  const isEnabled = snapshot.val();
+  if (isEnabled) {
+    loadStatusEl.textContent = "Disconnected";
+    loadStatusEl.classList.remove("connected");
+    loadStatusEl.classList.add("disconnected");
+    toggleLoadBtn.textContent = "Connect Electricity";
+    toggleLoadBtn.classList.add("connect");
   } else {
-    loadingOverlay.classList.add("hidden");
+    loadStatusEl.textContent = "Connected";
+    loadStatusEl.classList.remove("disconnected");
+    loadStatusEl.classList.add("connected");
+    toggleLoadBtn.textContent = "Disconnect Electricity";
+    toggleLoadBtn.classList.remove("connect");
   }
-}
+});
 
-/**
- * Initializes the Chart.js instances for the hourly and monthly charts.
- */
-function initializeCharts() {
-  const hourlyEnergyCtx = document
-    .getElementById("hourlyEnergyChart")
-    .getContext("2d");
-  hourlyEnergyChart = new Chart(hourlyEnergyCtx, {
-    type: "bar",
-    data: {
-      labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
-      datasets: [
-        {
-          label: "Energy Consumed (kWh)",
-          data: [],
-          backgroundColor: "rgba(59, 130, 246, 0.6)",
-          borderColor: "rgba(59, 130, 246, 1)",
-          borderWidth: 1
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: "Energy (kWh)"
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: "Hour of the Day"
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          display: false
-        }
+toggleLoadBtn.addEventListener("click", () => {
+  loadControlRef.once("value", snapshot => {
+    const isEnabled = snapshot.val();
+    // Toggle the value in Firebase
+    loadControlRef.set(!isEnabled);
+  });
+});
+
+// --- CHARTS ---
+
+// Set default date for date picker to today
+datePicker.valueAsDate = new Date();
+
+// Daily Energy Consumption Chart
+const dailyCtx = document.getElementById("daily-chart").getContext("2d");
+const dailyChart = new Chart(dailyCtx, {
+  type: "bar",
+  data: {
+    labels: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 24 hours
+    datasets: [
+      {
+        label: "Energy (kWh)",
+        data: [], // Initially empty
+        backgroundColor: "rgba(54, 162, 235, 0.6)",
+        borderColor: "rgba(54, 162, 235, 1)",
+        borderWidth: 1
       }
-    }
-  });
-
-  const monthlyBillsCtx = document
-    .getElementById("monthlyBillsChart")
-    .getContext("2d");
-  const monthLabels = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  monthlyBillsChart = new Chart(monthlyBillsCtx, {
-    type: "bar",
-    data: {
-      labels: monthLabels,
-      datasets: [
-        {
-          label: "Monthly Bill (ILS)",
-          data: [],
-          backgroundColor: "rgba(236, 72, 153, 0.6)",
-          borderColor: "rgba(236, 72, 153, 1)",
-          borderWidth: 1
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: "Bill Amount (ILS)"
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: "Month"
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          display: false
-        }
-      }
-    }
-  });
-}
-
-/**
- * Updates the hourly energy chart based on the selected date.
- * @param {string} selectedDateStr - The date string from the date picker.
- */
-function updateHourlyChart(selectedDateStr) {
-  const selectedDate = new Date(selectedDateStr);
-  const hourlyData = new Array(24).fill(0);
-
-  // Filter readings for the selected day
-  const dailyReadings = allReadings.filter(reading => {
-    // Correctly parse the timestamp string from your Firebase data
-    const readingDate = new Date(reading.timestamp);
-    return (
-      readingDate.getFullYear() === selectedDate.getFullYear() &&
-      readingDate.getMonth() === selectedDate.getMonth() &&
-      readingDate.getDate() === selectedDate.getDate()
-    );
-  });
-
-  if (dailyReadings.length === 0) {
-    hourlyEnergyChart.data.datasets[0].data = hourlyData;
-    hourlyEnergyChart.update();
-    return;
-  }
-
-  // Sort readings by timestamp to ensure correct calculation
-  dailyReadings.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-  // Group readings by hour and get the max energy value for each hour
-  const hourlyMaxEnergy = {};
-  dailyReadings.forEach(reading => {
-    const readingDate = new Date(reading.timestamp);
-    const hour = readingDate.getHours();
-    if (
-      !hourlyMaxEnergy[hour] ||
-      reading.totalEnergy_kWh > hourlyMaxEnergy[hour]
-    ) {
-      hourlyMaxEnergy[hour] = reading.totalEnergy_kWh;
-    }
-  });
-
-  // Calculate hourly consumption
-  for (let i = 0; i < 24; i++) {
-    if (hourlyMaxEnergy[i] !== undefined) {
-      let startOfHourEnergy = 0;
-      // Find the last known energy value from a previous hour
-      for (let j = i - 1; j >= 0; j--) {
-        if (hourlyMaxEnergy[j] !== undefined) {
-          startOfHourEnergy = hourlyMaxEnergy[j];
-          break;
-        }
-      }
-      const hourlyConsumption = hourlyMaxEnergy[i] - startOfHourEnergy;
-      hourlyData[i] = hourlyConsumption > 0 ? hourlyConsumption : 0;
-    } else {
-      hourlyData[i] = 0;
-    }
-  }
-
-  hourlyEnergyChart.data.datasets[0].data = hourlyData;
-  hourlyEnergyChart.update();
-}
-
-/**
- * Updates the monthly bills chart based on the selected year.
- * @param {number} selectedYear - The year from the year picker.
- */
-function updateMonthlyChart(selectedYear) {
-  const monthlyData = new Array(12).fill(0);
-
-  // Filter readings for the selected year
-  const yearlyReadings = allReadings.filter(reading => {
-    // Correctly parse the timestamp string from your Firebase data
-    const readingDate = new Date(reading.timestamp);
-    return readingDate.getFullYear() === selectedYear;
-  });
-
-  if (yearlyReadings.length === 0) {
-    monthlyBillsChart.data.datasets[0].data = monthlyData;
-    monthlyBillsChart.update();
-    return;
-  }
-
-  const monthlyMaxBills = {};
-  yearlyReadings.forEach(reading => {
-    // Correctly parse the timestamp string from your Firebase data
-    const readingDate = new Date(reading.timestamp);
-    const month = readingDate.getMonth();
-    if (
-      !monthlyMaxBills[month] ||
-      reading.currentBill > monthlyMaxBills[month]
-    ) {
-      monthlyMaxBills[month] = reading.currentBill;
-    }
-  });
-
-  for (let i = 0; i < 12; i++) {
-    monthlyData[i] = monthlyMaxBills[i] || 0;
-  }
-
-  monthlyBillsChart.data.datasets[0].data = monthlyData;
-  monthlyBillsChart.update();
-}
-
-// Real-time listener for the main data
-dbRef.child("data").on(
-  "value",
-  snapshot => {
-    const data = snapshot.val();
-    if (data) {
-      // Extract all the nested reading objects from the data node
-      allReadings = Object.values(data);
-
-      // Sort by timestamp to get the latest reading
-      allReadings.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      const latestReading = allReadings[0];
-
-      if (latestReading) {
-        liveCurrentEl.textContent = latestReading.current.toFixed(2);
-        livePowerEl.textContent = latestReading.power.toFixed(2);
-        liveEnergyEl.textContent = latestReading.totalEnergy_kWh.toFixed(2);
-        liveBillEl.textContent = latestReading.currentBill.toFixed(2);
-      }
-
-      // Update charts with new data
-      updateHourlyChart(datePicker.value);
-      updateMonthlyChart(parseInt(yearPicker.value));
-    }
-    toggleLoading(false);
+    ]
   },
-  error => {
-    console.error("Error fetching data:", error);
-    toggleLoading(false);
-  }
-);
-
-// Real-time listener for the load control state
-// Assuming there is a separate "LoadControl/shutdown" node based on sketch.ino
-dbRef.child("LoadControl/shutdown").on(
-  "value",
-  snapshot => {
-    const isShutdown = snapshot.val();
-    if (isShutdown === false) {
-      // This means the load is CONNECTED
-      loadControlBtn.textContent = "Disconnect Electricity";
-      loadControlBtn.classList.remove(
-        "bg-green-500",
-        "hover:bg-green-600",
-        "focus:ring-green-500/50"
-      );
-      loadControlBtn.classList.add(
-        "bg-red-500",
-        "hover:bg-red-600",
-        "focus:ring-red-500/50"
-      );
-      loadStatusEl.textContent = "Load is currently connected.";
-      loadStatusEl.classList.remove("text-red-500");
-      loadStatusEl.classList.add("text-green-500");
-    } else if (isShutdown === true) {
-      // This means the load is DISCONNECTED
-      loadControlBtn.textContent = "Connect Electricity";
-      loadControlBtn.classList.remove(
-        "bg-red-500",
-        "hover:bg-red-600",
-        "focus:ring-red-500/50"
-      );
-      loadControlBtn.classList.add(
-        "bg-green-500",
-        "hover:bg-green-600",
-        "focus:ring-green-500/50"
-      );
-      loadStatusEl.textContent = "Load is currently disconnected.";
-      loadStatusEl.classList.remove("text-green-500");
-      loadStatusEl.classList.add("text-red-500");
+  options: {
+    scales: {
+      y: {
+        beginAtZero: true
+      }
     }
-  },
-  error => {
-    console.error("Error fetching load control state:", error);
   }
-);
-
-// Event listener for the load control button
-loadControlBtn.addEventListener("click", () => {
-  const isShutdown = loadControlBtn.textContent === "Connect Electricity";
-  // The sketch.ino code listens for a 'shutdown' command.
-  dbRef
-    .child("LoadControl/shutdown")
-    .set(isShutdown)
-    .then(() => {
-      // Update successful, the onValue listener will handle UI change
-    })
-    .catch(error => {
-      console.error("Error writing to Firebase:", error);
-    });
 });
 
-// Event listener for the date picker
-datePicker.addEventListener("change", event => {
-  updateHourlyChart(event.target.value);
+// Monthly Bills Chart
+const monthlyCtx = document.getElementById("monthly-chart").getContext("2d");
+const monthlyChart = new Chart(monthlyCtx, {
+  type: "line",
+  data: {
+    labels: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
+    datasets: [
+      {
+        label: "Bill (₪)",
+        data: [], // Initially empty
+        backgroundColor: "rgba(255, 99, 132, 0.2)",
+        borderColor: "rgba(255, 99, 132, 1)",
+        borderWidth: 2,
+        fill: true
+      }
+    ]
+  },
+  options: {
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  }
 });
 
-// Event listener for the year picker
-yearPicker.addEventListener("change", event => {
-  updateMonthlyChart(parseInt(event.target.value));
+// --- CHART DATA LOGIC ---
+
+// Function to fetch and update daily chart
+function updateDailyChart(date) {
+  // In a real application, you would query Firebase for data on the selected date.
+  // For this example, we'll use dummy data.
+  const dummyDailyData = Array.from({ length: 24 }, () => Math.random() * 2); // Random kWh
+  dailyChart.data.datasets[0].data = dummyDailyData;
+  dailyChart.update();
+}
+
+// Function to fetch and update monthly chart
+function updateMonthlyChart(year) {
+  // In a real application, you would query Firebase for bills for the selected year.
+  // For this example, we'll use dummy data.
+  const dummyMonthlyData = Array.from(
+    { length: 12 },
+    () => Math.random() * 200
+  ); // Random bill amount
+  monthlyChart.data.datasets[0].data = dummyMonthlyData;
+  monthlyChart.update();
+}
+
+// Event Listeners for pickers
+datePicker.addEventListener("change", e => {
+  updateDailyChart(e.target.value);
 });
 
-// Set up initial date pickers on load
-const today = new Date();
-const yyyy = today.getFullYear();
-const mm = String(today.getMonth() + 1).padStart(2, "0");
-const dd = String(today.getDate()).padStart(2, "0");
-datePicker.value = `${yyyy}-${mm}-${dd}`;
-yearPicker.value = yyyy;
+yearPicker.addEventListener("change", e => {
+  updateMonthlyChart(e.target.value);
+});
 
-// Initial setup on window load
-window.onload = function() {
-  toggleLoading(true);
-  initializeCharts();
-};
+// Initial chart load
+updateDailyChart(datePicker.value);
+updateMonthlyChart(yearPicker.value);
