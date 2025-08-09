@@ -232,36 +232,45 @@ function updateMonthlyChart(selectedYear) {
   });
 }
 
-// Alerts System
+// Modify the existing alerts code (replace the entire alerts section)
 const dataRef = database.ref("data").limitToLast(1);
 dataRef.on("child_added", snapshot => {
-  const entry = snapshot.val();
-  const alertsList = document.getElementById("alerts-list");
-  alertsList.innerHTML = "";
+    const entry = snapshot.val();
+    const alertsList = document.getElementById("alerts-list");
+    alertsList.innerHTML = "";
 
-  const alertMessages = {
-    overdrawn: "Current exceeded safe limit!",
-    budgetExceeded: "Monthly budget exceeded!",
-    spikeDetected: "Sudden usage spike detected!"
-  };
+    const alertMessages = {
+        overdrawn: "Current exceeded safe limit!",
+        budgetExceeded: "Monthly budget exceeded!",
+        spikeDetected: "Sudden usage spike detected!"
+    };
 
-  let hasAlerts = false;
+    let alertCount = 0;
+    let hasAlerts = false;
 
-  Object.keys(alertMessages).forEach(key => {
-    if (entry[key] === true) {
-      hasAlerts = true;
-      const li = document.createElement("li");
-      li.classList.add("alert-item", `alert-${key}`);
-      li.textContent = `${alertMessages[key]} (${new Date(
-        parseInt(entry.timestamp)
-      ).toLocaleString()})`;
-      alertsList.appendChild(li);
+    // Count and display alerts
+    Object.keys(alertMessages).forEach(key => {
+        if (entry[key] === true) {
+            hasAlerts = true;
+            alertCount++;
+            
+            const li = document.createElement("li");
+            li.classList.add("alert-item", `alert-${key}`);
+            li.textContent = `${alertMessages[key]} (${new Date(
+                parseInt(entry.timestamp)
+            ).toLocaleString()})`;
+            alertsList.appendChild(li);
+        }
+    });
+
+    // Update alert count display
+    document.getElementById("alert-count").textContent = alertCount;
+
+    // Show "no alerts" message if none exist
+    if (!hasAlerts) {
+        alertsList.innerHTML = '<li class="no-alerts">No alerts at this time</li>';
+        document.getElementById("alert-count").textContent = "0";
     }
-  });
-
-  if (!hasAlerts) {
-    alertsList.innerHTML = '<li class="no-alerts">No alerts at this time</li>';
-  }
 });
 
 // Event Listeners
