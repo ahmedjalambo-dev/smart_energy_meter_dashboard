@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Energy Meter Dashboard</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -14,162 +13,50 @@
 
 <body>
     <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <div class="header-left">
-                    <div class="logo">
-                        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                        </svg>
-                    </div>
-                    <div class="header-text">
-                        <h1>Smart Energy Meter</h1>
-                        <p>Real-time energy monitoring</p>
-                    </div>
-                </div>
-                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
-            </div>
+        <header>
+            <h1>Smart Energy Meter</h1>
         </header>
-
-        <main class="main-content">
-            <section class="section">
-                <div class="section-header">
-                    <h2>Live Data</h2>
-                    <p>Real-time energy consumption metrics</p>
-                </div>
+        <main>
+            <section class="live-data">
+                <h2>Live Data</h2>
                 <div class="data-grid">
                     <div class="data-card">
-                        <div class="card-header">
-                            <h3>Current</h3>
-                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline>
-                            </svg>
-                        </div>
-                        <div class="card-content">
-                            <p class="card-value" id="current">0.0 A</p>
-                            <p class="card-description">Electrical current flow</p>
-                        </div>
+                        <h3>Current</h3>
+                        <p id="current">0.0 A</p>
                     </div>
-
                     <div class="data-card">
-                        <div class="card-header">
-                            <h3>Power</h3>
-                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <path d="M16 10a4 4 0 0 1-8 0"></path>
-                            </svg>
-                        </div>
-                        <div class="card-content">
-                            <p class="card-value" id="power">0.0 W</p>
-                            <p class="card-description">Instantaneous power usage</p>
-                        </div>
+                        <h3>Power</h3>
+                        <p id="power">0.0 W</p>
                     </div>
-
                     <div class="data-card">
-                        <div class="card-header">
-                            <h3>Energy</h3>
-                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                            </svg>
-                        </div>
-                        <div class="card-content">
-                            <p class="card-value" id="energy">0.000 kWh</p>
-                            <p class="card-description">Total energy consumed</p>
-                        </div>
+                        <h3>Energy</h3>
+                        <p id="energy">0.000 kWh</p>
                     </div>
-
                     <div class="data-card">
-                        <div class="card-header">
-                            <h3>Current Bill</h3>
-                            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <line x1="12" y1="1" x2="12" y2="23"></line>
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
-                        </div>
-                        <div class="card-content">
-                            <p class="card-value" id="bill">₪ 0.00</p>
-                            <p class="card-description">Accumulated charges</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section class="section">
-                <div class="section-header">
-                    <h2>Controls</h2>
-                    <p>Manage your electricity connection</p>
-                </div>
-                <div class="controls-container">
-                    <div class="control-card">
-                        <div class="control-header">
-                            <svg class="control-icon" id="connection-icon" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
-                            <h3>Electricity Status</h3>
-                        </div>
-                        <div class="control-content">
-                            <div class="status-row">
-                                <span>Connection Status:</span>
-                                <span class="status-badge" id="load-status">Connected</span>
-                            </div>
-                            <button class="control-button" id="toggle-load">Disconnect Electricity</button>
-                        </div>
+                        <h3>Current Bill</h3>
+                        <p id="bill">₪ 0.00</p>
                     </div>
                 </div>
             </section>
 
-            <section class="section">
-                <div class="section-header">
-                    <h2>Analytics</h2>
-                    <p>Energy consumption patterns and billing history</p>
+            <section class="controls">
+                <h2>Controls</h2>
+                <div class="control-panel">
+                    <p>Electricity Status: <span id="load-status">Connected</span></p>
+                    <button id="toggle-load">Disconnect Electricity</button>
                 </div>
-                <div class="charts-grid">
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Daily Energy Consumption</h3>
-                            <div class="input-group">
-                                <label for="date-picker">Select Date</label>
-                                <input type="date" id="date-picker" class="date-input">
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="daily-chart"></canvas>
-                        </div>
-                    </div>
+            </section>
 
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Monthly Bills</h3>
-                            <div class="input-group">
-                                <label for="year-picker">Select Year</label>
-                                <input type="number" id="year-picker" min="2020" max="2030" step="1" value="2025"
-                                    class="date-input">
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="monthly-chart"></canvas>
-                        </div>
-                    </div>
+            <section class="charts">
+                <div class="chart-container">
+                    <h2>Daily Energy Consumption (kWh)</h2>
+                    <input type="date" id="date-picker">
+                    <canvas id="daily-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h2>Monthly Bills (₪)</h2>
+                    <input type="number" id="year-picker" min="2020" max="2030" step="1" value="2025">
+                    <canvas id="monthly-chart"></canvas>
                 </div>
             </section>
         </main>
