@@ -52,6 +52,49 @@ function getEndOfMonth(year, month) {
   return new Date(year, month + 1, 0, 23, 59, 59, 999).getTime();
 }
 
+function calculateEnergyFromPowerReadings(dataArray) {
+  if (dataArray.length < 2) return 0;
+
+  let totalEnergy = 0; // in kWh
+
+  // Sort by timestamp to ensure proper order
+  dataArray.sort((a, b) => a.timestamp - b.timestamp);
+
+  for (let i = 1; i < dataArray.length; i++) {
+    const currentReading = dataArray[i];
+    const previousReading = dataArray[i - 1];
+
+    // Calculate time difference in hours
+    const timeDiffMs = currentReading.timestamp - previousReading.timestamp;
+    const timeDiffHours = timeDiffMs / (1000 * 60 * 60);
+
+    // Use average power between two readings for more accuracy
+    const avgPower = (currentReading.power + previousReading.power) / 2;
+
+    // Calculate energy consumed in this time interval (kWh)
+    const energyIncrement = avgPower / 1000 * timeDiffHours;
+
+    totalEnergy += energyIncrement;
+  }
+
+  return totalEnergy;
+}
+
+function getTotalEnergyFromStart(allData) {
+  const dataArray = [];
+
+  Object.values(allData).forEach(entry => {
+    if (entry.timestamp && entry.power !== undefined) {
+      dataArray.push({
+        timestamp: parseInt(entry.timestamp),
+        power: entry.power
+      });
+    }
+  });
+
+  return calculateEnergyFromPowerReadings(dataArray);
+}
+
 function getCurrentMonthEnergyConsumption(allData) {
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -59,55 +102,21 @@ function getCurrentMonthEnergyConsumption(allData) {
   const startOfMonth = getStartOfMonth(currentYear, currentMonth);
   const endOfMonth = getEndOfMonth(currentYear, currentMonth);
 
-  // Get all entries for current month, sorted by timestamp
-  const monthEntries = [];
+  // Get all entries for current month
+  const monthDataArray = [];
   Object.values(allData).forEach(entry => {
-    if (entry.timestamp && entry.totalEnergy_kWh !== undefined) {
+    if (entry.timestamp && entry.power !== undefined) {
       const timestamp = parseInt(entry.timestamp);
       if (timestamp >= startOfMonth && timestamp <= endOfMonth) {
-        monthEntries.push({
+        monthDataArray.push({
           timestamp: timestamp,
-          totalEnergy: entry.totalEnergy_kWh
+          power: entry.power
         });
       }
     }
   });
 
-  // Sort by timestamp
-  monthEntries.sort((a, b) => a.timestamp - b.timestamp);
-
-  if (monthEntries.length === 0) {
-    return 0;
-  }
-
-  // Find the energy at start of month (or closest to it)
-  let energyAtStartOfMonth = 0;
-
-  // Check if we have data from before this month to get baseline
-  const entriesBeforeMonth = [];
-  Object.values(allData).forEach(entry => {
-    if (entry.timestamp && entry.totalEnergy_kWh !== undefined) {
-      const timestamp = parseInt(entry.timestamp);
-      if (timestamp < startOfMonth) {
-        entriesBeforeMonth.push({
-          timestamp: timestamp,
-          totalEnergy: entry.totalEnergy_kWh
-        });
-      }
-    }
-  });
-
-  if (entriesBeforeMonth.length > 0) {
-    // Get the last reading before this month started
-    entriesBeforeMonth.sort((a, b) => b.timestamp - a.timestamp);
-    energyAtStartOfMonth = entriesBeforeMonth[0].totalEnergy;
-  }
-
-  // Current total energy is the latest reading in the month
-  const currentTotalEnergy = monthEntries[monthEntries.length - 1].totalEnergy;
-
-  // Monthly consumption = current total - total at start of month
-  return Math.max(0, currentTotalEnergy - energyAtStartOfMonth);
+  return calculateEnergyFromPowerReadings(monthDataArray);
 }
 
 function getMonthlyEnergyConsumption(allData, year, month) {
@@ -115,53 +124,52 @@ function getMonthlyEnergyConsumption(allData, year, month) {
   const endOfMonth = getEndOfMonth(year, month);
 
   // Get all entries for the specified month
-  const monthEntries = [];
+  const monthDataArray = [];
   Object.values(allData).forEach(entry => {
-    if (entry.timestamp && entry.totalEnergy_kWh !== undefined) {
+    if (entry.timestamp && entry.power !== undefined) {
       const timestamp = parseInt(entry.timestamp);
       if (timestamp >= startOfMonth && timestamp <= endOfMonth) {
-        monthEntries.push({
+        monthDataArray.push({
           timestamp: timestamp,
-          totalEnergy: entry.totalEnergy_kWh
+          power: entry.power
         });
       }
     }
   });
 
-  if (monthEntries.length === 0) {
-    return 0;
+  return calculateEnergyFromPowerReadings(monthDataArray);
+}
+
+function getDailyEnergyByHour(allData, selectedDate) {
+  const hourlyEnergy = new Array(24).fill(0);
+
+  // Group data by hour for the selected date
+  const hourlyData = {};
+  for (let hour = 0; hour < 24; hour++) {
+    hourlyData[hour] = [];
   }
 
-  // Sort by timestamp
-  monthEntries.sort((a, b) => a.timestamp - b.timestamp);
-
-  // Find energy at start of month
-  let energyAtStartOfMonth = 0;
-
-  // Check for data from before this month
-  const entriesBeforeMonth = [];
   Object.values(allData).forEach(entry => {
-    if (entry.timestamp && entry.totalEnergy_kWh !== undefined) {
-      const timestamp = parseInt(entry.timestamp);
-      if (timestamp < startOfMonth) {
-        entriesBeforeMonth.push({
-          timestamp: timestamp,
-          totalEnergy: entry.totalEnergy_kWh
+    if (entry.timestamp && entry.power !== undefined) {
+      const entryDate = timestampToDate(parseInt(entry.timestamp));
+      if (entryDate === selectedDate) {
+        const hour = timestampToHour(parseInt(entry.timestamp));
+        hourlyData[hour].push({
+          timestamp: parseInt(entry.timestamp),
+          power: entry.power
         });
       }
     }
   });
 
-  if (entriesBeforeMonth.length > 0) {
-    entriesBeforeMonth.sort((a, b) => b.timestamp - a.timestamp);
-    energyAtStartOfMonth = entriesBeforeMonth[0].totalEnergy;
+  // Calculate energy for each hour
+  for (let hour = 0; hour < 24; hour++) {
+    if (hourlyData[hour].length > 0) {
+      hourlyEnergy[hour] = calculateEnergyFromPowerReadings(hourlyData[hour]);
+    }
   }
 
-  // Energy at end of month
-  const energyAtEndOfMonth = monthEntries[monthEntries.length - 1].totalEnergy;
-
-  // Monthly consumption = energy at end - energy at start
-  return Math.max(0, energyAtEndOfMonth - energyAtStartOfMonth);
+  return hourlyEnergy;
 }
 
 // Live Data Updates
@@ -171,12 +179,17 @@ latestDataRef.on("child_added", snapshot => {
   const data = snapshot.val();
   currentEl.textContent = `${data.current.toFixed(1)} A`;
   powerEl.textContent = `${data.power.toFixed(0)} W`;
-  energyEl.textContent = `${data.totalEnergy_kWh.toFixed(3)} kWh`;
 
-  // Calculate and display current month bill
+  // Calculate total energy and current month bill from all data
   database.ref("data").once("value", allDataSnapshot => {
     if (allDataSnapshot.exists()) {
       const allData = allDataSnapshot.val();
+
+      // Calculate total energy from start
+      const totalEnergy = getTotalEnergyFromStart(allData);
+      energyEl.textContent = `${totalEnergy.toFixed(3)} kWh`;
+
+      // Calculate current month consumption and bill
       const monthlyConsumption = getCurrentMonthEnergyConsumption(allData);
       const monthlyBill = monthlyConsumption * TARIFF_RATE;
       billEl.textContent = `₪ ${monthlyBill.toFixed(2)}`;
@@ -309,26 +322,15 @@ const monthlyChart = new Chart(monthlyCtx, {
 
 // Chart Update Functions
 function updateDailyChart(selectedDate) {
-  const hourlyEnergy = new Array(24).fill(0);
-
   database.ref("data").once("value", snapshot => {
     if (!snapshot.exists()) {
-      dailyChart.data.datasets[0].data = hourlyEnergy;
+      dailyChart.data.datasets[0].data = new Array(24).fill(0);
       dailyChart.update();
       return;
     }
 
     const allData = snapshot.val();
-    Object.values(allData).forEach(entry => {
-      if (entry.timestamp && entry.power !== undefined) {
-        const entryDate = timestampToDate(parseInt(entry.timestamp));
-        if (entryDate === selectedDate) {
-          const hour = timestampToHour(parseInt(entry.timestamp));
-          const energyIncrement = (entry.power || 0) / 1000.0 / 60.0;
-          hourlyEnergy[hour] += energyIncrement;
-        }
-      }
-    });
+    const hourlyEnergy = getDailyEnergyByHour(allData, selectedDate);
 
     dailyChart.data.datasets[0].data = hourlyEnergy;
     dailyChart.update();
@@ -336,16 +338,15 @@ function updateDailyChart(selectedDate) {
 }
 
 function updateMonthlyChart(selectedYear) {
-  const monthlyBills = new Array(12).fill(0);
-
   database.ref("data").once("value", snapshot => {
     if (!snapshot.exists()) {
-      monthlyChart.data.datasets[0].data = monthlyBills;
+      monthlyChart.data.datasets[0].data = new Array(12).fill(0);
       monthlyChart.update();
       return;
     }
 
     const allData = snapshot.val();
+    const monthlyBills = [];
 
     // Calculate bill for each month
     for (let month = 0; month < 12; month++) {
@@ -354,7 +355,7 @@ function updateMonthlyChart(selectedYear) {
         parseInt(selectedYear),
         month
       );
-      monthlyBills[month] = monthlyConsumption * TARIFF_RATE;
+      monthlyBills.push(monthlyConsumption * TARIFF_RATE);
     }
 
     monthlyChart.data.datasets[0].data = monthlyBills;
