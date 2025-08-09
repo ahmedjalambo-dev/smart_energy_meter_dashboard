@@ -6,66 +6,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Energy Meter Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1>Smart Energy Meter</h1>
-        </header>
-        <main>
-            <section class="live-data">
-                <h2>Live Data</h2>
-                <div class="data-grid">
-                    <div class="data-card">
-                        <h3>Current</h3>
-                        <p id="current">0.0 A</p>
+    <div class="dashboard">
+        Sidebar Navigation
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">⚡</div>
+                    <h1>EnergyMeter</h1>
+                </div>
+            </div>
+            <div class="nav-menu">
+                <a href="#overview" class="nav-item active">
+                    <span class="nav-icon">📊</span>
+                    <span>Overview</span>
+                </a>
+                <a href="#analytics" class="nav-item">
+                    <span class="nav-icon">📈</span>
+                    <span>Analytics</span>
+                </a>
+                <a href="#controls" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Controls</span>
+                </a>
+                <a href="#alerts" class="nav-item">
+                    <span class="nav-icon">🔔</span>
+                    <span>Alerts</span>
+                </a>
+            </div>
+        </nav>
+
+        Main Content
+        <main class="main-content">
+            Header
+            <header class="header">
+                <div class="header-content">
+                    <h2>Energy Dashboard</h2>
+                    <div class="header-actions">
+                        <div class="status-indicator">
+                            <div class="status-dot"></div>
+                            <span>Live</span>
+                        </div>
                     </div>
-                    <div class="data-card">
-                        <h3>Power</h3>
-                        <p id="power">0.0 W</p>
+                </div>
+            </header>
+
+            Live Metrics
+            <section class="metrics-section">
+                <div class="metrics-grid">
+                    <div class="metric-card current">
+                        <div class="metric-header">
+                            <span class="metric-icon">⚡</span>
+                            <span class="metric-label">Current</span>
+                        </div>
+                        <div class="metric-value" id="current">0.0 A</div>
+                        <div class="metric-trend">Real-time</div>
                     </div>
-                    <div class="data-card">
-                        <h3>Energy</h3>
-                        <p id="energy">0.000 kWh</p>
+
+                    <div class="metric-card power">
+                        <div class="metric-header">
+                            <span class="metric-icon">🔋</span>
+                            <span class="metric-label">Power</span>
+                        </div>
+                        <div class="metric-value" id="power">0.0 W</div>
+                        <div class="metric-trend">Active</div>
                     </div>
-                    <div class="data-card">
-                        <h3>Current Bill</h3>
-                        <p id="bill">₪ 0.00</p>
+
+                    <div class="metric-card energy">
+                        <div class="metric-header">
+                            <span class="metric-icon">💡</span>
+                            <span class="metric-label">Energy</span>
+                        </div>
+                        <div class="metric-value" id="energy">0.000 kWh</div>
+                        <div class="metric-trend">Total consumed</div>
+                    </div>
+
+                    <div class="metric-card bill">
+                        <div class="metric-header">
+                            <span class="metric-icon">💰</span>
+                            <span class="metric-label">Current Bill</span>
+                        </div>
+                        <div class="metric-value" id="bill">₪ 0.00</div>
+                        <div class="metric-trend">This month</div>
                     </div>
                 </div>
             </section>
 
-            <section class="controls">
-                <h2>Controls</h2>
-                <div class="control-panel">
-                    <p>Electricity Status: <span id="load-status">Connected</span></p>
-                    <button id="toggle-load">Disconnect Electricity</button>
+            Control Panel
+            <section class="control-section">
+                <div class="control-card">
+                    <div class="control-header">
+                        <h3>Electricity Control</h3>
+                        <div class="control-status">
+                            <span class="status-label">Status:</span>
+                            <span id="load-status" class="status-badge connected">Connected</span>
+                        </div>
+                    </div>
+                    <div class="control-actions">
+                        <button id="toggle-load" class="control-button disconnect">
+                            <span class="button-icon">🔌</span>
+                            <span>Disconnect Electricity</span>
+                        </button>
+                    </div>
                 </div>
             </section>
-            <section class="alerts">
-                <h2>Alerts</h2>
-                <ul id="alerts-list">
-                    <!-- Alerts from Firebase will be appended here -->
-                </ul>
-            </section>
-            <section class="charts">
-                <div class="chart-container">
-                    <h2>Daily Energy Consumption (kWh)</h2>
-                    <input type="date" id="date-picker">
-                    <canvas id="daily-chart"></canvas>
+
+            Alerts Section
+            <section class="alerts-section">
+                <div class="alerts-card">
+                    <div class="alerts-header">
+                        <h3>System Alerts</h3>
+                        <div class="alerts-count">
+                            <span id="alerts-count">0</span>
+                        </div>
+                    </div>
+                    <div class="alerts-content">
+                        <ul id="alerts-list">
+                            <li class="no-alerts">No alerts at this time</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="chart-container">
-                    <h2>Monthly Bills (₪)</h2>
-                    <input type="number" id="year-picker" min="2020" max="2030" step="1" value="2025">
-                    <canvas id="monthly-chart"></canvas>
+            </section>
+
+            Charts Section
+            <section class="charts-section">
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Daily Energy Consumption</h3>
+                            <div class="chart-controls">
+                                <input type="date" id="date-picker" class="date-input">
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="daily-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Monthly Bills</h3>
+                            <div class="chart-controls">
+                                <input type="number" id="year-picker" min="2020" max="2030" step="1" value="2025"
+                                    class="year-input">
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="monthly-chart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
     </div>
+
     <script src="script.js"></script>
 </body>
 
