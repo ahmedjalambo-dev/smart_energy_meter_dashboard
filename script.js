@@ -1,59 +1,3 @@
-// Theme Toggle Functionality
-const themeToggle = document.getElementById("theme-toggle");
-const icon = themeToggle.querySelector("i");
-
-// Check for saved theme preference or use preferred color scheme
-const currentTheme =
-  localStorage.getItem("theme") ||
-  (window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light");
-
-// Apply the saved theme
-if (currentTheme === "dark") {
-  document.documentElement.setAttribute("data-theme", "dark");
-  icon.classList.replace("fa-moon", "fa-sun");
-}
-
-// Theme toggle click handler
-themeToggle.addEventListener("click", () => {
-  let theme = "light";
-  if (document.documentElement.getAttribute("data-theme") !== "dark") {
-    theme = "dark";
-    icon.classList.replace("fa-moon", "fa-sun");
-  } else {
-    icon.classList.replace("fa-sun", "fa-moon");
-  }
-
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("theme", theme);
-
-  // Update charts to match theme
-  updateChartThemes();
-});
-
-// Update charts when theme changes
-function updateChartThemes() {
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-  const gridColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)";
-  const textColor = isDark ? "#adb5bd" : "#6b7280";
-
-  // Update daily chart
-  dailyChart.options.scales.x.ticks.color = textColor;
-  dailyChart.options.scales.y.ticks.color = textColor;
-  dailyChart.options.scales.y.grid.color = gridColor;
-  dailyChart.update();
-
-  // Update monthly chart
-  monthlyChart.options.scales.x.ticks.color = textColor;
-  monthlyChart.options.scales.y.ticks.color = textColor;
-  monthlyChart.options.scales.y.grid.color = gridColor;
-  monthlyChart.update();
-}
-
-// Call this after initializing your charts
-updateChartThemes();
-
 // Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDrSS7eDfPxqKrNkx5s8mr4X6T5ZQRELWk",
@@ -165,12 +109,12 @@ const dailyChart = new Chart(dailyCtx, {
     scales: {
       y: {
         beginAtZero: true,
-        grid: { color: "var(--chart-grid, rgba(0,0,0,0.1))" },
-        ticks: { color: "var(--chart-text, #6b7280)" }
+        grid: { color: "rgba(0,0,0,0.1)" },
+        ticks: { color: "#6b7280" }
       },
       x: {
         grid: { display: false },
-        ticks: { color: "var(--chart-text, #6b7280)" }
+        ticks: { color: "#6b7280" }
       }
     }
   }
@@ -220,12 +164,12 @@ const monthlyChart = new Chart(monthlyCtx, {
     scales: {
       y: {
         beginAtZero: true,
-        grid: { color: "var(--chart-grid, rgba(0,0,0,0.1))" },
-        ticks: { color: "var(--chart-text, #6b7280)" }
+        grid: { color: "rgba(0,0,0,0.1)" },
+        ticks: { color: "#6b7280" }
       },
       x: {
         grid: { display: false },
-        ticks: { color: "var(--chart-text, #6b7280)" }
+        ticks: { color: "#6b7280" }
       }
     }
   }
@@ -292,50 +236,50 @@ function updateMonthlyChart(selectedYear) {
 // Replace the entire alerts section with this code
 const dataRef = database.ref("data").limitToLast(1);
 dataRef.on("child_added", snapshot => {
-  const entry = snapshot.val();
-  const alertsList = document.getElementById("alerts-list");
-  alertsList.innerHTML = "";
+    const entry = snapshot.val();
+    const alertsList = document.getElementById("alerts-list");
+    alertsList.innerHTML = "";
 
-  const alertMessages = {
-    overdrawn: "Current exceeded safe limit!",
-    budgetExceeded: "Monthly budget exceeded!",
-    spikeDetected: "Sudden usage spike detected!"
-  };
+    const alertMessages = {
+        overdrawn: "Current exceeded safe limit!",
+        budgetExceeded: "Monthly budget exceeded!",
+        spikeDetected: "Sudden usage spike detected!"
+    };
 
-  let alertCount = 0;
+    let alertCount = 0;
+    
+    // Create a document fragment for better performance
+    const fragment = document.createDocumentFragment();
+    
+    Object.keys(alertMessages).forEach(key => {
+        // Check both boolean true and string "true" for robustness
+        if (entry[key] === true || entry[key] === "true") {
+            alertCount++;
+            
+            const li = document.createElement("li");
+            li.classList.add("alert-item", `alert-${key}`);
+            li.textContent = `${alertMessages[key]} (${new Date(
+                parseInt(entry.timestamp)
+            ).toLocaleString()})`;
+            fragment.appendChild(li);
+        }
+    });
 
-  // Create a document fragment for better performance
-  const fragment = document.createDocumentFragment();
-
-  Object.keys(alertMessages).forEach(key => {
-    // Check both boolean true and string "true" for robustness
-    if (entry[key] === true || entry[key] === "true") {
-      alertCount++;
-
-      const li = document.createElement("li");
-      li.classList.add("alert-item", `alert-${key}`);
-      li.textContent = `${alertMessages[key]} (${new Date(
-        parseInt(entry.timestamp)
-      ).toLocaleString()})`;
-      fragment.appendChild(li);
+    // Update the DOM
+    if (alertCount > 0) {
+        alertsList.appendChild(fragment);
+    } else {
+        alertsList.innerHTML = '<li class="no-alerts">No alerts at this time</li>';
     }
-  });
-
-  // Update the DOM
-  if (alertCount > 0) {
-    alertsList.appendChild(fragment);
-  } else {
-    alertsList.innerHTML = '<li class="no-alerts">No alerts at this time</li>';
-  }
-
-  // Update counter - this is the critical fix
-  const alertCountElement = document.getElementById("alert-count");
-  if (alertCountElement) {
-    alertCountElement.textContent = alertCount;
-    // Visual feedback when count changes
-    alertCountElement.classList.add("count-updated");
-    setTimeout(() => alertCountElement.classList.remove("count-updated"), 300);
-  }
+    
+    // Update counter - this is the critical fix
+    const alertCountElement = document.getElementById("alert-count");
+    if (alertCountElement) {
+        alertCountElement.textContent = alertCount;
+        // Visual feedback when count changes
+        alertCountElement.classList.add("count-updated");
+        setTimeout(() => alertCountElement.classList.remove("count-updated"), 300);
+    }
 });
 
 // Event Listeners
