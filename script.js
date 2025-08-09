@@ -300,15 +300,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 1000);
 });
 // Update Current Time
+// Current Time Function (put this near top of script.js)
 function updateCurrentTime() {
-  const now = new Date();
-  const timeString = now.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-  document.getElementById("current-time").textContent = timeString;
+  try {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    });
+
+    const timeElement = document.getElementById("current-time");
+    if (timeElement) {
+      timeElement.textContent = timeString;
+    } else {
+      console.error("Element with ID 'current-time' not found!");
+    }
+  } catch (error) {
+    console.error("Error updating time:", error);
+  }
 }
 
-// Update time immediately and then every second
-updateCurrentTime();
-setInterval(updateCurrentTime, 1000);
+// Initialize time when DOM loads
+document.addEventListener("DOMContentLoaded", () => {
+  updateCurrentTime();
+  setInterval(updateCurrentTime, 1000);
+  console.log("Time updater initialized");
+});
