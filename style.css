@@ -138,7 +138,46 @@ section h2 {
 #toggle-load.connect:hover {
     background-color: #218838;
 }
+/* Alerts Section */
+.alerts {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    padding: 20px;
+}
 
+.alerts h2 {
+    color: #856404;
+}
+
+#alerts-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.alert-item {
+    background: #fff;
+    border: 1px solid #ffeeba;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert-item.overdrawn {
+    border-left: 5px solid #dc3545;
+}
+
+.alert-item.budgetExceeded {
+    border-left: 5px solid #ffc107;
+}
+
+.alert-item.spikeDetected {
+    border-left: 5px solid #17a2b8;
+}
 
 /* Charts Section */
 .charts {

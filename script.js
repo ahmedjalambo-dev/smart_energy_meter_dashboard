@@ -300,6 +300,38 @@ function updateMonthlyChart(selectedYear) {
           }
         }
       });
+      const dataRef = firebase.database().ref("data").limitToLast(1);
+
+      dataRef.on("child_added", snapshot => {
+        const entry = snapshot.val();
+        const alertsList = document.getElementById("alerts-list");
+        alertsList.innerHTML = "";
+
+        // Mapping alert types to messages
+        const alertMessages = {
+          overdrawn: "Current exceeded safe limit!",
+          budgetExceeded: "Monthly budget exceeded!",
+          spikeDetected: "Sudden usage spike detected!"
+        };
+
+        let hasAlerts = false;
+
+        Object.keys(alertMessages).forEach(key => {
+          if (entry[key] === true) {
+            hasAlerts = true;
+            const li = document.createElement("li");
+            li.classList.add("alert-item", key);
+            li.textContent = `${alertMessages[key]} (${new Date(
+              parseInt(entry.timestamp)
+            ).toLocaleString()})`;
+            alertsList.appendChild(li);
+          }
+        });
+
+        if (!hasAlerts) {
+          alertsList.innerHTML = "<li>No alerts at this time.</li>";
+        }
+      });
 
       console.log(`Processed ${dataPointsProcessed} total data points`);
       console.log(
