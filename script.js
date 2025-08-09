@@ -9,6 +9,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
+// Constants
+const TARIFF_RATE = 0.5; // ILS per kWh
+
 // DOM Elements
 const currentEl = document.getElementById("current");
 const powerEl = document.getElementById("power");
@@ -41,6 +44,126 @@ function timestampToYear(timestamp) {
   return date.getFullYear();
 }
 
+function getStartOfMonth(year, month) {
+  return new Date(year, month, 1).getTime();
+}
+
+function getEndOfMonth(year, month) {
+  return new Date(year, month + 1, 0, 23, 59, 59, 999).getTime();
+}
+
+function getCurrentMonthEnergyConsumption(allData) {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const startOfMonth = getStartOfMonth(currentYear, currentMonth);
+  const endOfMonth = getEndOfMonth(currentYear, currentMonth);
+
+  // Get all entries for current month, sorted by timestamp
+  const monthEntries = [];
+  Object.values(allData).forEach(entry => {
+    if (entry.timestamp && entry.totalEnergy_kWh !== undefined) {
+      const timestamp = parseInt(entry.timestamp);
+      if (timestamp >= startOfMonth && timestamp <= endOfMonth) {
+        monthEntries.push({
+          timestamp: timestamp,
+          totalEnergy: entry.totalEnergy_kWh
+        });
+      }
+    }
+  });
+
+  // Sort by timestamp
+  monthEntries.sort((a, b) => a.timestamp - b.timestamp);
+
+  if (monthEntries.length === 0) {
+    return 0;
+  }
+
+  // Find the energy at start of month (or closest to it)
+  let energyAtStartOfMonth = 0;
+
+  // Check if we have data from before this month to get baseline
+  const entriesBeforeMonth = [];
+  Object.values(allData).forEach(entry => {
+    if (entry.timestamp && entry.totalEnergy_kWh !== undefined) {
+      const timestamp = parseInt(entry.timestamp);
+      if (timestamp < startOfMonth) {
+        entriesBeforeMonth.push({
+          timestamp: timestamp,
+          totalEnergy: entry.totalEnergy_kWh
+        });
+      }
+    }
+  });
+
+  if (entriesBeforeMonth.length > 0) {
+    // Get the last reading before this month started
+    entriesBeforeMonth.sort((a, b) => b.timestamp - a.timestamp);
+    energyAtStartOfMonth = entriesBeforeMonth[0].totalEnergy;
+  }
+
+  // Current total energy is the latest reading in the month
+  const currentTotalEnergy = monthEntries[monthEntries.length - 1].totalEnergy;
+
+  // Monthly consumption = current total - total at start of month
+  return Math.max(0, currentTotalEnergy - energyAtStartOfMonth);
+}
+
+function getMonthlyEnergyConsumption(allData, year, month) {
+  const startOfMonth = getStartOfMonth(year, month);
+  const endOfMonth = getEndOfMonth(year, month);
+
+  // Get all entries for the specified month
+  const monthEntries = [];
+  Object.values(allData).forEach(entry => {
+    if (entry.timestamp && entry.totalEnergy_kWh !== undefined) {
+      const timestamp = parseInt(entry.timestamp);
+      if (timestamp >= startOfMonth && timestamp <= endOfMonth) {
+        monthEntries.push({
+          timestamp: timestamp,
+          totalEnergy: entry.totalEnergy_kWh
+        });
+      }
+    }
+  });
+
+  if (monthEntries.length === 0) {
+    return 0;
+  }
+
+  // Sort by timestamp
+  monthEntries.sort((a, b) => a.timestamp - b.timestamp);
+
+  // Find energy at start of month
+  let energyAtStartOfMonth = 0;
+
+  // Check for data from before this month
+  const entriesBeforeMonth = [];
+  Object.values(allData).forEach(entry => {
+    if (entry.timestamp && entry.totalEnergy_kWh !== undefined) {
+      const timestamp = parseInt(entry.timestamp);
+      if (timestamp < startOfMonth) {
+        entriesBeforeMonth.push({
+          timestamp: timestamp,
+          totalEnergy: entry.totalEnergy_kWh
+        });
+      }
+    }
+  });
+
+  if (entriesBeforeMonth.length > 0) {
+    entriesBeforeMonth.sort((a, b) => b.timestamp - a.timestamp);
+    energyAtStartOfMonth = entriesBeforeMonth[0].totalEnergy;
+  }
+
+  // Energy at end of month
+  const energyAtEndOfMonth = monthEntries[monthEntries.length - 1].totalEnergy;
+
+  // Monthly consumption = energy at end - energy at start
+  return Math.max(0, energyAtEndOfMonth - energyAtStartOfMonth);
+}
+
 // Live Data Updates
 const latestDataRef = database.ref("data").limitToLast(1);
 
@@ -49,7 +172,16 @@ latestDataRef.on("child_added", snapshot => {
   currentEl.textContent = `${data.current.toFixed(1)} A`;
   powerEl.textContent = `${data.power.toFixed(0)} W`;
   energyEl.textContent = `${data.totalEnergy_kWh.toFixed(3)} kWh`;
-  billEl.textContent = `₪ ${data.currentBill.toFixed(2)}`;
+
+  // Calculate and display current month bill
+  database.ref("data").once("value", allDataSnapshot => {
+    if (allDataSnapshot.exists()) {
+      const allData = allDataSnapshot.val();
+      const monthlyConsumption = getCurrentMonthEnergyConsumption(allData);
+      const monthlyBill = monthlyConsumption * TARIFF_RATE;
+      billEl.textContent = `₪ ${monthlyBill.toFixed(2)}`;
+    }
+  });
 });
 
 // Load Control
@@ -214,72 +346,68 @@ function updateMonthlyChart(selectedYear) {
     }
 
     const allData = snapshot.val();
-    Object.values(allData).forEach(entry => {
-      if (entry.timestamp && entry.currentBill !== undefined) {
-        const entryYear = timestampToYear(parseInt(entry.timestamp));
-        if (entryYear === parseInt(selectedYear)) {
-          const month = timestampToMonth(parseInt(entry.timestamp));
-          monthlyBills[month] = Math.max(
-            monthlyBills[month],
-            entry.currentBill || 0
-          );
-        }
-      }
-    });
+
+    // Calculate bill for each month
+    for (let month = 0; month < 12; month++) {
+      const monthlyConsumption = getMonthlyEnergyConsumption(
+        allData,
+        parseInt(selectedYear),
+        month
+      );
+      monthlyBills[month] = monthlyConsumption * TARIFF_RATE;
+    }
 
     monthlyChart.data.datasets[0].data = monthlyBills;
     monthlyChart.update();
   });
 }
 
-// Modify the existing alerts code (replace the entire alerts section)
-// Replace the entire alerts section with this code
+// Alerts handling
 const dataRef = database.ref("data").limitToLast(1);
 dataRef.on("child_added", snapshot => {
-    const entry = snapshot.val();
-    const alertsList = document.getElementById("alerts-list");
-    alertsList.innerHTML = "";
+  const entry = snapshot.val();
+  const alertsList = document.getElementById("alerts-list");
+  alertsList.innerHTML = "";
 
-    const alertMessages = {
-        overdrawn: "Current exceeded safe limit!",
-        budgetExceeded: "Monthly budget exceeded!",
-        spikeDetected: "Sudden usage spike detected!"
-    };
+  const alertMessages = {
+    overdrawn: "Current exceeded safe limit!",
+    spikeDetected: "Sudden usage spike detected!"
+  };
 
-    let alertCount = 0;
-    
-    // Create a document fragment for better performance
-    const fragment = document.createDocumentFragment();
-    
-    Object.keys(alertMessages).forEach(key => {
-        // Check both boolean true and string "true" for robustness
-        if (entry[key] === true || entry[key] === "true") {
-            alertCount++;
-            
-            const li = document.createElement("li");
-            li.classList.add("alert-item", `alert-${key}`);
-            li.textContent = `${alertMessages[key]} (${new Date(
-                parseInt(entry.timestamp)
-            ).toLocaleString()})`;
-            fragment.appendChild(li);
-        }
-    });
+  let alertCount = 0;
 
-    // Update the DOM
-    if (alertCount > 0) {
-        alertsList.appendChild(fragment);
-    } else {
-        alertsList.innerHTML = '<li class="no-alerts">No alerts at this time</li>';
+  // Create a document fragment for better performance
+  const fragment = document.createDocumentFragment();
+
+  Object.keys(alertMessages).forEach(key => {
+    // Check both boolean true and string "true" for robustness
+    if (entry[key] === true || entry[key] === "true") {
+      alertCount++;
+
+      const li = document.createElement("li");
+      li.classList.add("alert-item", `alert-${key}`);
+      li.textContent = `${alertMessages[key]} (${new Date(
+        parseInt(entry.timestamp)
+      ).toLocaleString()})`;
+      fragment.appendChild(li);
     }
-    
-    // Update counter - this is the critical fix
-    const alertCountElement = document.getElementById("alert-count");
-    if (alertCountElement) {
-        alertCountElement.textContent = alertCount;
-        // Visual feedback when count changes
-        alertCountElement.classList.add("count-updated");
-        setTimeout(() => alertCountElement.classList.remove("count-updated"), 300);
-    }
+  });
+
+  // Update the DOM
+  if (alertCount > 0) {
+    alertsList.appendChild(fragment);
+  } else {
+    alertsList.innerHTML = '<li class="no-alerts">No alerts at this time</li>';
+  }
+
+  // Update counter
+  const alertCountElement = document.getElementById("alert-count");
+  if (alertCountElement) {
+    alertCountElement.textContent = alertCount;
+    // Visual feedback when count changes
+    alertCountElement.classList.add("count-updated");
+    setTimeout(() => alertCountElement.classList.remove("count-updated"), 300);
+  }
 });
 
 // Event Listeners
@@ -317,8 +445,8 @@ document.addEventListener("DOMContentLoaded", () => {
     updateMonthlyChart(yearPicker.value);
   }, 1000);
 });
-// Update Current Time
-// Current Time Function (put this near top of script.js)
+
+// Current Time Function
 function updateCurrentTime() {
   try {
     const now = new Date();
