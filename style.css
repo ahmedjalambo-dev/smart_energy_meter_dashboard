@@ -433,3 +433,80 @@ body {
     background: var(--primary);
     animation: pulse 1.5s infinite;
 }
+
+
+/* Theme Variables */
+:root {
+    /* Light theme (default) */
+    --bg-color: #f5f7ff;
+    --card-bg: white;
+    --text-color: #1a1a2e;
+    --text-secondary: #6c757d;
+    --border-color: #e9ecef;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+    /* Dark theme */
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-color: #f8f9fa;
+    --text-secondary: #adb5bd;
+    --border-color: #2d2d2d;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+
+    /* Chart adjustments */
+    --chart-grid: #2d2d2d;
+    --chart-text: #adb5bd;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    background: var(--primary-light);
+    color: var(--primary);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+/* Apply theme colors */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.card,
+.metric-card,
+.chart-card,
+.control-card,
+.alerts-card,
+.dashboard-header {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.metric-info h3,
+.subtitle,
+.no-alerts {
+    color: var(--text-secondary);
+}
+
+/* Chart theme adjustments */
+.chart-container canvas {
+    filter: brightness(0.9) contrast(1.1);
+}
+
+[data-theme="dark"] .chart-container canvas {
+    filter: brightness(0.8) contrast(1.2);
+}
