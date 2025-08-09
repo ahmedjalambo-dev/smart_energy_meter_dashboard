@@ -233,6 +233,7 @@ function updateMonthlyChart(selectedYear) {
 }
 
 // Modify the existing alerts code (replace the entire alerts section)
+// Replace the entire alerts section with this code
 const dataRef = database.ref("data").limitToLast(1);
 dataRef.on("child_added", snapshot => {
     const entry = snapshot.val();
@@ -246,12 +247,13 @@ dataRef.on("child_added", snapshot => {
     };
 
     let alertCount = 0;
-    let hasAlerts = false;
-
-    // Count and display alerts
+    
+    // Create a document fragment for better performance
+    const fragment = document.createDocumentFragment();
+    
     Object.keys(alertMessages).forEach(key => {
-        if (entry[key] === true) {
-            hasAlerts = true;
+        // Check both boolean true and string "true" for robustness
+        if (entry[key] === true || entry[key] === "true") {
             alertCount++;
             
             const li = document.createElement("li");
@@ -259,17 +261,24 @@ dataRef.on("child_added", snapshot => {
             li.textContent = `${alertMessages[key]} (${new Date(
                 parseInt(entry.timestamp)
             ).toLocaleString()})`;
-            alertsList.appendChild(li);
+            fragment.appendChild(li);
         }
     });
 
-    // Update alert count display
-    document.getElementById("alert-count").textContent = alertCount;
-
-    // Show "no alerts" message if none exist
-    if (!hasAlerts) {
+    // Update the DOM
+    if (alertCount > 0) {
+        alertsList.appendChild(fragment);
+    } else {
         alertsList.innerHTML = '<li class="no-alerts">No alerts at this time</li>';
-        document.getElementById("alert-count").textContent = "0";
+    }
+    
+    // Update counter - this is the critical fix
+    const alertCountElement = document.getElementById("alert-count");
+    if (alertCountElement) {
+        alertCountElement.textContent = alertCount;
+        // Visual feedback when count changes
+        alertCountElement.classList.add("count-updated");
+        setTimeout(() => alertCountElement.classList.remove("count-updated"), 300);
     }
 });
 
