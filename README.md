@@ -9,8 +9,8 @@ The dashboard provides real-time monitoring, data visualization, and remote cont
 This project can be run directly on Wokwi:
 **Dashboard Link:** `https://ahmedjalambo-dev.github.io/smart_energy_meter_dashboard/`
 
-<img width="1411" height="1182" alt="image" src="https://github.com/user-attachments/assets/e55462b5-3165-4d72-be3d-330065b5b8c4" />
 
+<img width="1327" height="1034" alt="image" src="https://github.com/user-attachments/assets/c621d214-0342-4562-8b8f-9e8b65433153" />
 
 
 ### ⚡ Features
