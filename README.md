@@ -4,6 +4,15 @@ This repository contains the frontend code for the Smart Energy Meter web dashbo
 
 The dashboard provides real-time monitoring, data visualization, and remote control capabilities for the energy meter.
 
+### Simulation
+
+This project can be run directly on Wokwi:
+**Dashboard Link:** `https://ahmedjalambo-dev.github.io/smart_energy_meter_dashboard/`
+
+<img width="1411" height="1182" alt="image" src="https://github.com/user-attachments/assets/e55462b5-3165-4d72-be3d-330065b5b8c4" />
+
+
+
 ### ⚡ Features
 
   * **Real-time Metrics:** Displays the latest Current (A), Power (W), Energy (kWh), and estimated Bill (in ₪) by listening for live data updates from Firebase.
